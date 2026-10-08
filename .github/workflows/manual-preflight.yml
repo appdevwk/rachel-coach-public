@@ -1,0 +1,27 @@
+name: rachel manual preflight
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: preflight-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          package-manager-cache: false
+      - name: Require reproducible npm install
+        run: test -f package-lock.json && npm ci --no-audit --no-fund
+      - name: Run repaired source regression checks
+        run: npm test
+
+      - name: Record scope of result
+        run: echo 'Preflight only. Production QA, paid-plan verification, live auth and data flows remain required.' >> "$GITHUB_STEP_SUMMARY"
