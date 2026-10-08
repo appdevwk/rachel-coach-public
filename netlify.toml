@@ -1,0 +1,42 @@
+[build]
+  command = "node extract.js && npm ci"
+  publish = "site"
+  functions = "netlify/functions"
+[build.environment]
+  NODE_VERSION = "22"
+[functions]
+  node_bundler = "esbuild"
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/api/:splat"
+  status = 200
+  force = true
+[[redirects]]
+  from = "/login"
+  to = "/.netlify/functions/api/auth/login"
+  status = 200
+[[redirects]]
+  from = "/logout"
+  to = "/.netlify/functions/api/auth/logout"
+  status = 200
+[[redirects]]
+  from = "/voice/api/tts"
+  to = "/.netlify/functions/api/voice/tts"
+  status = 200
+[[redirects]]
+  from = "/account"
+  to = "/account.html"
+  status = 200
+[[redirects]]
+  from = "/challenge"
+  to = "/challenge.html"
+  status = 200
+[[redirects]]
+  from = "/checkout"
+  to = "/checkout.html"
+  status = 200
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"

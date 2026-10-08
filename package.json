@@ -1,0 +1,15 @@
+{
+  "name": "rachel-coach-rebuild",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "test": "node --test test/*.test.js",
+    "pretest": "node extract.js"
+  },
+  "dependencies": {
+    "@neondatabase/serverless": "^1.2.0",
+    "@workos-inc/node": "^11.0.0",
+    "livekit-server-sdk": "^2.7.0",
+    "stripe": "^18.0.0"
+  }
+}
