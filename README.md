@@ -1,21 +1,15 @@
-# Rachel Coach Rebuild
+# Rachel Coach: repaired development candidate
 
-Private recovery of the Rachel web app from appdevwk/rachel-assignment-coach, source commit 70b48ccf34b4b38e7520f2656e08690ae1eae842.
+Release gate: **NO PASS — live configuration and integration verification required**.
 
-## Free hosting target
+Run `npm ci` then `npm test`. Source is reconstructed deterministically from `source-bundle.json`; do not hand-edit extracted files without regenerating the bundle. Both Netlify and Vercel configurations are included. The site is static; authenticated APIs remain server-only.
 
-Netlify Free. Hosting is free within its current credit allowance; WorkOS, Stripe, LiveKit and model inference have independent terms and usage costs.
+Repairs include OAuth state/PKCE, same-origin mutations, authenticated mapped hosted Checkout with durable attempt idempotency, signed raw-body webhook processing/deduplication, server-reconciled paid access, billing portal, request quotas, member orientation/progress/daily-time preferences in PostgreSQL, and free-only bounded chat with no automatic retry. Avatar bytes are included. Placeholder testimonials and unsupported instant-access claims removed. Old browser credential-signing script removed; the corresponding existing credential still requires owner rotation.
 
-Run `npm ci` and `npm test`. Netlify deploy uses `netlify.toml`; public files are in `site`, API handlers in `api`, and a serverless adapter in `netlify/functions/api.js`. Set environment variables using `.env.example` in the provider's secret settings, never commit secret values. Register the actual deployed callback URL in WorkOS.
+Stripe is test mode by default, and test/live records are isolated. Read `database/BILLING-SETUP.md`; apply `database/billing.sql` and `database/member.sql` only to an explicitly selected isolated preview database. No schema migration was performed by this repair.
 
-## Repairs
+Chat requires `RACHEL_ENABLE_CHAT=true` and OpenRouter configuration. It accepts only the free-model router/specific free variants, imposes zero price ceilings and no paid fallback. Zero price routing may find no available ZDR-compatible provider; that fails safely. Account upgrade/recharge settings still require verification outside source.
 
-Voice always requires a verified WorkOS member; the legacy bypass cannot open it. Rooms are generated server-side per call, token TTL is ten minutes, and LiveKit requires a URL. Short cookie secrets fail configuration. Checkout return URLs use the configured site origin. Embedded Stripe Checkout uses embedded mode. A URL parameter no longer claims verified payment. Request parsing rejects invalid JSON and excessive bodies. Vercel-only analytics removed. Frontend/API separated so server code is not statically published.
+Voice is disabled by default. Enable only after a bounded agent worker is actually verified: token expiry does not end an active room. `RACHEL_ENABLE_VOICE=true` plus `RACHEL_BOUNDED_VOICE_WORKER=verified` are administrative configuration, not evidence of worker testing. Daily five-minute preferences are saved; outbound delivery is **not enabled** or claimed implemented.
 
-## Release status: NO PASS
-
-Five local regression tests pass. No deployed replacement exists yet. Production sign-in, actual checkout and subscription entitlements, bookings, daily calls, server persistence and voice-agent conversation remain unverified. No webhook-backed subscription entitlement implementation was recovered. Do not treat local tests as full release acceptance or expose paid functionality before these gates pass.
-
-`source-bundle.json` contains the source tree excluding dependencies and credentials. It is included for upload recovery; run `node extract.js` before deployment if source directories are not already present.
-
-Bulk GitHub upload failed. Source is stored as plain JSON text and reconstructed by extract.js. Avatar currently references the original public production asset.
+Missing production prerequisites: WorkOS credentials/registered callback and cookie secret, matching isolated durable database/schema, Stripe test products/webhook/portal configuration, real voice/avatar/dispatch and daily delivery worker, phone/browser tests, account free-plan/no-upgrade/no-recharge evidence, observability/load/rollback. No production deployment or paid provider request occurred in this repair. Do not enable checkout/paid voice in production before full acceptance passes.
