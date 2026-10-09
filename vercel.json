@@ -1,8 +1,19 @@
 {
   "version": 2,
-  "buildCommand": "node extract.js",
-  "outputDirectory": "site",
+  "buildCommand": "npm run build",
   "rewrites": [
+    {
+      "source": "/",
+      "destination": "/api/entry"
+    },
+    {
+      "source": "/app",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/signup",
+      "destination": "/signup.html"
+    },
     {
       "source": "/login",
       "destination": "/api/auth/login"

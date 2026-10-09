@@ -4,7 +4,9 @@
   "private": true,
   "scripts": {
     "test": "node --test test/*.test.js",
-    "pretest": "node extract.js"
+    "pretest": "node extract.js",
+    "build": "node build-vercel.js",
+    "verify:build": "node verify-build.js"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.2.0",

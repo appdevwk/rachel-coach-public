@@ -7,6 +7,19 @@
 [functions]
   node_bundler = "esbuild"
 [[redirects]]
+  from = "/"
+  to = "/.netlify/functions/api/entry"
+  status = 200
+  force = true
+[[redirects]]
+  from = "/app"
+  to = "/index.html"
+  status = 200
+[[redirects]]
+  from = "/signup"
+  to = "/signup.html"
+  status = 200
+[[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/api/:splat"
   status = 200
