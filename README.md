@@ -1,21 +1,34 @@
-# Rachel Coach Rebuild
+# Rachel Coach: repaired development candidate
 
-Private recovery of the Rachel web app from appdevwk/rachel-assignment-coach, source commit 70b48ccf34b4b38e7520f2656e08690ae1eae842.
+Release gate: **NO PASS — live configuration and integration verification required**.
 
-## Free hosting target
+Run `npm ci` then `npm test`. Source is reconstructed deterministically from `source-bundle.json`; do not hand-edit extracted files without regenerating the bundle. Both Netlify and Vercel configurations are included. The site is static; authenticated APIs remain server-only.
 
-Netlify Free. Hosting is free within its current credit allowance; WorkOS, Stripe, LiveKit and model inference have independent terms and usage costs.
+Repairs include OAuth state/PKCE, same-origin mutations, authenticated mapped hosted Checkout with durable attempt idempotency, signed raw-body webhook processing/deduplication, server-reconciled paid access, billing portal, request quotas, member orientation/progress/daily-time preferences in PostgreSQL, and free-only bounded chat with no automatic retry. Avatar bytes are included. Placeholder testimonials and unsupported instant-access claims removed. Old browser credential-signing script removed; the corresponding existing credential still requires owner rotation.
 
-Run `npm ci` and `npm test`. Netlify deploy uses `netlify.toml`; public files are in `site`, API handlers in `api`, and a serverless adapter in `netlify/functions/api.js`. Set environment variables using `.env.example` in the provider's secret settings, never commit secret values. Register the actual deployed callback URL in WorkOS.
+Stripe is test mode by default, and test/live records are isolated. Read `database/BILLING-SETUP.md`; apply `database/billing.sql` and `database/member.sql` only to an explicitly selected isolated preview database. No schema migration was performed by this repair.
 
-## Repairs
+Chat requires `RACHEL_ENABLE_CHAT=true` and OpenRouter configuration. It accepts only the free-model router/specific free variants, imposes zero price ceilings and no paid fallback. Zero price routing may find no available ZDR-compatible provider; that fails safely. Account upgrade/recharge settings still require verification outside source.
 
-Voice always requires a verified WorkOS member; the legacy bypass cannot open it. Rooms are generated server-side per call, token TTL is ten minutes, and LiveKit requires a URL. Short cookie secrets fail configuration. Checkout return URLs use the configured site origin. Embedded Stripe Checkout uses embedded mode. A URL parameter no longer claims verified payment. Request parsing rejects invalid JSON and excessive bodies. Vercel-only analytics removed. Frontend/API separated so server code is not statically published.
+Voice is disabled by default. Enable only after a bounded agent worker is actually verified: token expiry does not end an active room. `RACHEL_ENABLE_VOICE=true` plus `RACHEL_BOUNDED_VOICE_WORKER=verified` are administrative configuration, not evidence of worker testing. Daily five-minute preferences are saved; outbound delivery is **not enabled** or claimed implemented.
 
-## Release status: NO PASS
+Missing production prerequisites: WorkOS credentials/registered callback and cookie secret, matching isolated durable database/schema, Stripe test products/webhook/portal configuration, real voice/avatar/dispatch and daily delivery worker, phone/browser tests, account free-plan/no-upgrade/no-recharge evidence, observability/load/rollback. No production deployment or paid provider request occurred in this repair. Do not enable checkout/paid voice in production before full acceptance passes.
 
-Five local regression tests pass. No deployed replacement exists yet. Production sign-in, actual checkout and subscription entitlements, bookings, daily calls, server persistence and voice-agent conversation remain unverified. No webhook-backed subscription entitlement implementation was recovered. Do not treat local tests as full release acceptance or expose paid functionality before these gates pass.
+## Signup-first and welcome-email repair (2026-10-09)
 
-`source-bundle.json` contains the source tree excluding dependencies and credentials. It is included for upload recovery; run `node extract.js` before deployment if source directories are not already present.
+The root checks the authenticated session server-side: visitors go to `signup.html`; signed-in members go to `/app`. Signup requests AuthKit's sign-up screen and retains existing OAuth state/PKCE. The successful callback shows `welcome.html`. Signup clearly reports when authentication is unavailable.
 
-Bulk GitHub upload failed. Source is stored as plain JSON text and reconstructed by extract.js. Avatar currently references the original public production asset.
+Welcome emails are separate transactional messages sent after verified email authentication. Hostinger SMTP is the default provider: set `RACHEL_EMAIL_PROVIDER=hostinger`, `HOSTINGER_SMTP_USER` to the full existing mailbox address, `HOSTINGER_SMTP_PASSWORD` to its mailbox password (not your hPanel password), and `RACHEL_EMAIL_FROM` to that same address. SMTP uses `smtp.hostinger.com:465` with validated TLS. Keep secrets server-side. First apply `database/welcome-email.sql` to an explicitly selected database, verify mailbox eligibility, expiry and renewal settings in hPanel, then set `RACHEL_ENABLE_WELCOME_EMAIL=true` only for an authorized delivery test. Do not claim or purchase a trial/upgrade automatically. Current Hostinger free trials allow 100 outgoing messages per rolling 24 hours; legacy free eligibility depends on the account. App caps are 90 first attempts per rolling 24 hours and 2000 per calendar month; other mailbox traffic shares Hostinger's limit.
+
+The per-user outbox reserves each SMTP attempt durably before sending. SMTP has no provider idempotency, so an uncertain/failed attempt requires manual review and is not automatically retried. A stable Message-ID is diagnostic only, not deduplication assurance. Accepted means SMTP server accepted the recipient, not inbox delivery. Resend remains available only when explicitly selected with `RACHEL_EMAIL_PROVIDER=resend`; its existing idempotency and 23-hour retry policy are retained. No provider fallback is automatic. Real PostgreSQL concurrency and actual inbox delivery still require verification. No mailbox or credentials were created by this change.
+
+The welcome email explains orientation, buy-box goals, the deal calculator, and Day 1. Account creation does not activate a paid plan. Automated calls are not promised. No promotional mailing list is created.
+
+Current production chat was switched to `openrouter/free` and redeployed, but a live request still fails because no free endpoint matches the existing zero-data-retention policy. Do not remove this policy silently or fall back to paid models. Authentication is HTTP 503 with `configured:false`; no active WorkOS or email credentials are available. This candidate remains NO PASS until actual signup, welcome inbox delivery and coaching acceptance succeed.
+
+
+## Voice connection repair (2026-10-10 UTC)
+
+The call controller now limits startup to 45 seconds, cancels stale attempts, stops late microphone tracks, and keeps actionable connection/permission errors visible. It waits for a LiveKit agent before requesting the microphone and reports readiness only after publishing audio. Incoming agent chat/transcription uses `registerTextStreamHandler` with `readAll`, never outbound `streamText`. Remote audio has playback controls. SDK remains pinned to 2.22.3; no custom ICE servers, forced transport, paid fallback or provider changes are added.
+
+Also retains the locally reviewed extraction cleanup, fresh deal review inputs and expired-checkout recovery from candidate f28e8f7. Source QA: 31 tests pass; 1 real PostgreSQL integration skipped; 18 packaged function mounts verified. These mocked client regressions do not prove actual audio or agent replies. The original production code still advertises anonymous voice despite unconfigured auth. LiveKit signaling responds but peer audio connection failed repeatedly in the cloud-browser test. Real voice needs verified authenticated agent/worker configuration, an allowed WebRTC network path and actual microphone/speaker acceptance before production release. NO PASS.
