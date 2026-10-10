@@ -25,3 +25,10 @@ The per-user outbox reserves each SMTP attempt durably before sending. SMTP has 
 The welcome email explains orientation, buy-box goals, the deal calculator, and Day 1. Account creation does not activate a paid plan. Automated calls are not promised. No promotional mailing list is created.
 
 Current production chat was switched to `openrouter/free` and redeployed, but a live request still fails because no free endpoint matches the existing zero-data-retention policy. Do not remove this policy silently or fall back to paid models. Authentication is HTTP 503 with `configured:false`; no active WorkOS or email credentials are available. This candidate remains NO PASS until actual signup, welcome inbox delivery and coaching acceptance succeed.
+
+
+## Voice connection repair (2026-10-10 UTC)
+
+The call controller now limits startup to 45 seconds, cancels stale attempts, stops late microphone tracks, and keeps actionable connection/permission errors visible. It waits for a LiveKit agent before requesting the microphone and reports readiness only after publishing audio. Incoming agent chat/transcription uses `registerTextStreamHandler` with `readAll`, never outbound `streamText`. Remote audio has playback controls. SDK remains pinned to 2.22.3; no custom ICE servers, forced transport, paid fallback or provider changes are added.
+
+Also retains the locally reviewed extraction cleanup, fresh deal review inputs and expired-checkout recovery from candidate f28e8f7. Source QA: 31 tests pass; 1 real PostgreSQL integration skipped; 18 packaged function mounts verified. These mocked client regressions do not prove actual audio or agent replies. The original production code still advertises anonymous voice despite unconfigured auth. LiveKit signaling responds but peer audio connection failed repeatedly in the cloud-browser test. Real voice needs verified authenticated agent/worker configuration, an allowed WebRTC network path and actual microphone/speaker acceptance before production release. NO PASS.
